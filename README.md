@@ -299,29 +299,88 @@ python src/evaluate.py
 
 **A) Seção "Técnicas Aplicadas (Fase 2)":**
 
-- Quais técnicas avançadas você escolheu para refatorar os prompts
-- Justificativa de por que escolheu cada técnica
-- Exemplos práticos de como aplicou cada técnica
+- Quais técnicas avançadas você escolheu para refatorar os prompts<br> 
+R:
+*Few-shot Learning (técnica obrigatória do desafio) e Skeleton of Thought (técnica adicional escolhida entre as opções propostas: CoT, ToT, Skeleton of Thought, ReAct e Role Prompting).*
+
+- Justificativa de por que escolheu cada técnica<br>
+R:
+*Few-shot Learning foi aplicado por ser exigência obrigatória do desafio e por reduzir a ambiguidade do formato de saída, ensinando o modelo pelo exemplo em vez de depender só de regras textuais soltas. Skeleton of Thought foi escolhido como técnica adicional porque os relatos de bug do dataset variam bastante em complexidade e volume de informação; estruturar a resposta em um esqueleto fixo de seções (Resumo do Problema, User Story, Critérios de Aceite, Prioridade Sugerida, Informações Faltantes e uma 6ª seção condicional de Contexto Técnico e Sugestões) garante consistência entre respostas, facilita a comparação automatizada contra as referências do dataset e contribuiu diretamente para a métrica de Clarity.*
+
+- Exemplos práticos de como aplicou cada técnica<br>
+R:
+*Few-shot: seção `# EXEMPLOS (few-shot)` do `bug_to_user_story_v2.yml`, com 5 exemplos cobrindo bug simples, bug com detalhes técnicos (complexidade média), bug incompleto, múltiplas falhas relacionadas ao mesmo incidente (complexidade alta) e entrada inválida. Skeleton of Thought: seção `# FORMATO DE SAÍDA`, com as 6 seções fixas (5 obrigatórias — Resumo do Problema, User Story, Critérios de Aceite, Prioridade Sugerida, Informações Faltantes — mais 1 condicional de Contexto Técnico e Sugestões para bugs de complexidade média/alta).*
 
 **B) Seção "Resultados Finais":**
 
-- Link público do seu dashboard do LangSmith mostrando as avaliações
-- Screenshots das avaliações com as notas mínimas de 0.8 atingidas
-- Tabela comparativa: prompts ruins (v1) vs prompts otimizados (v2)
+- Link público do seu dashboard do LangSmith mostrando as avaliações<br>
+R: *https://smith.langchain.com/hub/marcioordonez/bug_to_user_story_v2*
+
+- Screenshots das avaliações com as notas mínimas de 0.8 atingidas<br>
+*<a href="test_passed1.png">test_passed1.png</a><br>
+<a href="test_passed2.png">test_passed2.png</a><br>
+<a href="test_passed3.png">test_passed3.png</a>*
+
+- Tabela comparativa: prompts ruins (v1) vs prompts otimizados (v2)<br>
+R: *Tabela abaixo, comparando estrutura e comportamento do v1 (`bug_to_user_story_v1.yml`) contra o v2 (`bug_to_user_story_v2.yml`), já que o `evaluate.py` avalia numericamente apenas o prompt v2.*
+
+| Aspecto | v1 (baixa qualidade) | v2 (otimizado) |
+|---|---|---|
+| Persona | Genérica ("assistente que ajuda a transformar relatos de bugs") | Específica e sênior (Product Owner / Scrum Master) |
+| Regras de comportamento | Nenhuma | 10 regras explícitas (anti-alucinação, formato fixo, tratamento de falhas relacionadas, exemplo numérico, critérios por perfil) |
+| Few-shot | Não possui | 5 exemplos cobrindo simples, médio, complexo, multi-falha e entrada inválida |
+| Estrutura de saída | Livre ("User Story gerada:") | Skeleton of Thought fixo (5 seções obrigatórias + 1 condicional) |
+| Tratamento de edge cases | Nenhum | Entrada vazia, feature request, bugs não relacionados vs. falhas relacionadas ao mesmo incidente |
+| Raciocínio estruturado (CoT) | Não possui | Processo de raciocínio em 7 passos antes de responder |
+| Resultado no `evaluate.py` | Não avaliado numericamente (script avalia apenas o v2) | Aprovado — todas as 5 métricas ≥ 0.8 |
+
 
 **C) Seção "Como Executar":**
 
-- Instruções claras e detalhadas de como executar o projeto
-- Pré-requisitos e dependências
+- Instruções claras e detalhadas de como executar o projeto<br>
+R: *1) Clonar o repositório e criar um ambiente virtual Python. 2) Instalar as dependências com `pip install -r requirements.txt`. 3) Copiar `.env.example` para `.env` e preencher as credenciais do LangSmith e do provedor de LLM escolhido (OpenAI ou Gemini). 4) Rodar `python src/pull_prompts.py` para baixar o prompt de baixa qualidade (v1). 5) Editar `prompts/bug_to_user_story_v2.yml` aplicando as técnicas descritas na seção A. 6) Rodar `python src/push_prompts.py` para publicar o v2 (público) no LangSmith Hub. 7) Rodar `python src/evaluate.py` para avaliar o v2 contra o dataset de 15 exemplos. 8) Rodar `pytest tests/test_prompts.py` para validar a estrutura do prompt. 9) Repetir os passos 5-7 até que todas as 5 métricas fiquem ≥ 0.8.*
+
+- Pré-requisitos e dependências<br>
+R: *Python 3.9+; conta no LangSmith com API Key; API Key de um provedor de LLM (OpenAI ou Google AI Studio/Gemini); dependências listadas em `requirements.txt` (langchain, langchain-core, langchain-community, langsmith, langchain-openai, langchain-google-genai, python-dotenv, pyyaml, pydantic, pytest).*
+
 - Comandos para cada fase do projeto
+```bash
+# Setup do ambiente
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Fase 1 — Pull do prompt inicial (v1)
+python src/pull_prompts.py
+
+# Fase 2 — Editar manualmente prompts/bug_to_user_story_v2.yml
+
+# Fase 3 — Push do prompt otimizado (v2)
+python src/push_prompts.py
+
+# Fase 4 — Avaliação
+python src/evaluate.py
+
+# Fase 5 — Testes de validação do prompt
+pytest tests/test_prompts.py
+```
+
 
 **3. Evidências no LangSmith:**
 
-- Link público (ou screenshots) do dashboard do LangSmith
+- Link público (ou screenshots) do dashboard do LangSmith<br>
+R: *https://smith.langchain.com/hub/marcioordonez/bug_to_user_story_v2*
+
 - Devem estar visíveis:
-  - Dataset de avaliação com 15 exemplos
-  - Execuções dos prompts v2 (otimizados) com notas ≥ 0.8
-  - Tracing detalhado de pelo menos 3 exemplos
+  - Dataset de avaliação com 15 exemplos<br>
+  R: *<a href="dataset.png">dataset.png</a>*
+
+  - Execuções dos prompts v2 (otimizados) com notas ≥ 0.8<br>
+  *<a href="test_passed1.png">test_passed1.png</a><br>
+  <a href="meu-repo-langsmith-hub.png">meu-repo-langsmith-hub.png</a>*
+
+  - Tracing detalhado de pelo menos 3 exemplos<br>
+  R: *<a href="tracing.png">tracing.png</a>*
 
 ---
 
